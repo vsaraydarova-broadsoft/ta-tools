@@ -60,5 +60,6 @@ def init_model(engine):
 # Import your model modules here.
 from srvreq.model.auth import User, Group, Permission
 from srvreq.model.setting import Setting
+from srvreq.model.request import Request
 
 __all__ = ('User', 'Group', 'Permission')

@@ -9,12 +9,12 @@
 
       <div class="row">
         <div class="col-md-8 col-md-offset-1">
-            <form action="/save_settings" method="post" accept-charset="UTF-8" class="form-horizontal">
+            <form action="/_settings/save" method="post" accept-charset="UTF-8" class="form-horizontal">
               <div class="form-group">
 
                 <!-- Username -->
                 <label class="col-sm-2 control-label">Group Admin Username</label>
-                <div class="col-sm-10">
+                <div class="col-sm-5">
                   <input class="form-control" type="text" name="admin_username" value="${data['admin_username']}"/>
                 </div>
               </div>
@@ -22,7 +22,7 @@
               <!-- Password -->
               <div class="form-group">
                 <label class="col-sm-2 control-label">Group Admin Password</label>
-                <div class="col-sm-10">
+                <div class="col-sm-5">
                   <input class="form-control" type="text" name="admin_password" value="${data['admin_password']}"/>
                 </div>
               </div>
@@ -30,7 +30,7 @@
               <!-- OCI Root -->
               <div class="form-group">
                 <label class="col-sm-2 control-label">OCI Root</label>
-                <div class="col-sm-10">
+                <div class="col-sm-5">
                   <input class="form-control" type="text" name="oci_root" value="${data['oci_root']}"/>
                 </div>
               </div>

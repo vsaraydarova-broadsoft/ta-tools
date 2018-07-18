@@ -51,12 +51,32 @@ def bootstrap(command, conf, vars):
                                           value="Welcome2013"))
         model.DBSession.add(model.Setting(name="oci_root",
                                           value="https://xsp1.ihs.broadsoft.com"))
+        model.DBSession.flush()
+        transaction.commit()
+    except IntegrityError:
+        print('Warning, there was a problem adding your settings data, '
+              'it may have already been added:')
+        import traceback
+        print(traceback.format_exc())
+        transaction.abort()
+        print('Continuing with bootstrapping...')
+
+    try:
+        # Add supported OCIP Requests
+        model.DBSession.add(model.Request(name="group_device_get_custom_tags",
+                                          display_name="GroupAccessDeviceCustomTagGetListRequest",
+                                          type="ocip"))
+
+        # Add supported XSP Requests
+        model.DBSession.add(model.Request(name="get_device_name_by_type",
+                                          display_name="profile/device",
+                                          type="xsp"))
 
 
         model.DBSession.flush()
         transaction.commit()
     except IntegrityError:
-        print('Warning, there was a problem adding your auth data, '
+        print('Warning, there was a problem adding your request data, '
               'it may have already been added:')
         import traceback
         print(traceback.format_exc())

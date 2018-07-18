@@ -14,12 +14,31 @@ from tgext.admin.tgadminconfig import BootstrapTGAdminConfig as TGAdminConfig
 from tgext.admin.controller import AdminController
 
 from srvreq.lib.base import BaseController
+
 from srvreq.controllers.error import ErrorController
+from srvreq.controllers.ocip import OCIPController
+from srvreq.controllers.xsp import XSPController
+
 from srvreq.model.setting import Setting
+
 
 __all__ = ['RootController']
 
 log = logging.getLogger(__name__)
+
+
+class SettingsController(BaseController):
+    @expose()
+    def index(self):
+        redirect('/')
+
+    @expose()
+    def save(self, **kwargs):
+        log.info("<DB> Save settings %s" % kwargs)
+        for k, v in kwargs.iteritems():
+            DBSession.query(Setting).filter_by(name=k).one().value = v
+        redirect("/settings")
+
 
 class RootController(BaseController):
     """
@@ -40,6 +59,10 @@ class RootController(BaseController):
 
     error = ErrorController()
 
+    _settings = SettingsController()
+    ocip = OCIPController()
+    xsp = XSPController()
+
     def _before(self, *args, **kw):
         tmpl_context.project_name = "srvreq"
 
@@ -49,15 +72,7 @@ class RootController(BaseController):
         settings = {s.__dict__["name"]: s.__dict__["value"] \
                     for s in DBSession.query(Setting).all()}
 
-        return dict(wikipage='settings', data=settings)
-
-    @expose()
-    def save_settings(self, admin_username, admin_password, oci_root):
-        log.info("<DB> Save settings %s %s %s" % (admin_username, admin_password, oci_root))
-        DBSession.query(Setting).filter_by(name="admin_username").one().value = admin_username
-        DBSession.query(Setting).filter_by(name="admin_password").one().value = admin_password
-        DBSession.query(Setting).filter_by(name="oci_root").one().value = oci_root
-        redirect("/settings")
+        return dict(data=settings)
 
     @expose('srvreq.templates.settings')
     def settings(self):

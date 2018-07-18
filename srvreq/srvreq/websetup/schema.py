@@ -15,6 +15,10 @@ def setup_schema(command, conf, vars):
     # <websetup.websetup.schema.after.model.import>
 
     # <websetup.websetup.schema.before.metadata.create_all>
+    print("Drop tables")
+    model.metadata.drop_all(bind=config['tg.app_globals'].sa_engine)
+
+    # <websetup.websetup.schema.before.metadata.create_all>
     print("Creating tables")
     model.metadata.create_all(bind=config['tg.app_globals'].sa_engine)
     # <websetup.websetup.schema.after.metadata.create_all>
