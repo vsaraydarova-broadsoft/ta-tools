@@ -51,6 +51,12 @@ def bootstrap(command, conf, vars):
                                           value="Welcome2013"))
         model.DBSession.add(model.Setting(name="oci_root",
                                           value="https://xsp1.ihs.broadsoft.com"))
+        model.DBSession.add(model.Setting(name="xsp_username",
+                                          value=""))
+        model.DBSession.add(model.Setting(name="xsp_password",
+                                          value=""))
+        model.DBSession.add(model.Setting(name="device_type",
+                                          value="Connect - Mobile"))
         model.DBSession.flush()
         transaction.commit()
     except IntegrityError:
@@ -61,6 +67,7 @@ def bootstrap(command, conf, vars):
         transaction.abort()
         print('Continuing with bootstrapping...')
 
+    '''
     try:
         # Add supported OCIP Requests
         model.DBSession.add(model.Request(name="group_device_get_custom_tags",
@@ -82,5 +89,6 @@ def bootstrap(command, conf, vars):
         print(traceback.format_exc())
         transaction.abort()
         print('Continuing with bootstrapping...')
+    '''
 
     # <websetup.bootstrap.after.auth>

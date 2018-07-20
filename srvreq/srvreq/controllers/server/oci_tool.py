@@ -7,8 +7,9 @@ import random
 import string
 from utils import value_to_str
 from suds.client import Client
-from robot.api import logger
+import logging
 
+log = logging.getLogger(__name__)
 
 class OciClient:
     """
@@ -27,6 +28,7 @@ class OciClient:
         """
         self.username = username
         self.password = password
+        self.oci_command = ''
         self.session_id = hashlib.sha1("UC-ONE UI Test OCI-P SOAP:%s:%s" %
                                        (random.randint(1, 1000000000),
                                         time.time())).hexdigest()
@@ -116,10 +118,11 @@ class OciClient:
         :param oci_command: OCI requests xml
         :return: OCI response xml
         """
-        logger.trace(oci_command)
+        log.info(oci_command)
+        self.oci_command = oci_command
         response = self.oci_soap.service.processOCIMessage(oci_command)
         if response:
-            logger.trace(response)
+            log.info(response)
             response_cmd = Etree.fromstring(response).find('.//command')
             if response_cmd is not None and response_cmd.get('type'):
                 assert response_cmd.get('type') != 'Error', \
@@ -285,6 +288,7 @@ class OciClient:
                      {'fileContent': file_content,
                       'parent': 'uploadFile'}]  # xs:base64Binary
         args += [{'extendedCaptureEnabled': value_to_str(extended_capture)}]
+
         return self._group_requests(
             'GroupAccessDeviceFileModifyRequest14sp8', *args,
             **kwargs)
@@ -316,7 +320,7 @@ class OciClient:
                              {'password': password},
                              **kwargs)
         added_user = self.user_get_data(user_id)
-        logger.info("Added a new user:\n%s" % added_user)
+        log.info("Added a new user:\n%s" % added_user)
         return added_user
 
     def user_get(self, user_id):
@@ -347,7 +351,7 @@ class OciClient:
 
     def user_delete(self, user_id):
         self._send(self._oci_xml('UserDeleteRequest', {'userId': user_id}))
-        logger.info("User '%s' deleted." % user_id)
+        log.info("User '%s' deleted." % user_id)
 
     def activate_imp(self, user_id, is_activate="true"):
         return self._send(
@@ -362,18 +366,18 @@ class OciClient:
         dn_list = []
         for item in parsed_response.findall('.//phoneNumber'):
             dn_list.append(item.text)
-        logger.info("Available numbers: %s" % dn_list)
+        log.info("Available numbers: %s" % dn_list)
         return dn_list
 
     def activate_number(self, phone_number, **kwargs):
-        logger.info("Activate number %s" % phone_number)
+        log.info("Activate number %s" % phone_number)
         return self._group_requests(
                 'GroupDnActivateListRequest', {'phoneNumber': phone_number},
                 **kwargs)
 
     def group_access_device_add(self, device_name, device_type,
                                 user_name, password, **kwargs):
-        logger.info("Add access device. Name: %s, Device type: %s" %
+        log.info("Add access device. Name: %s, Device type: %s" %
                     (device_name, device_type))
         return self._group_requests('GroupAccessDeviceAddRequest14',
                                     {'deviceName': device_name},
@@ -395,7 +399,7 @@ class OciClient:
                 'user_name': response.findtext('.//userName')}
 
     def group_access_device_delete(self, device_name, **kwargs):
-        logger.info("Delete Access Device '%s'" % device_name)
+        log.info("Delete Access Device '%s'" % device_name)
         return self._group_requests('GroupAccessDeviceDeleteRequest',
                                     {'deviceName': device_name},
                                     **kwargs)
@@ -404,7 +408,7 @@ class OciClient:
         sca = self._send(
                 self._oci_xml('UserSharedCallAppearanceGetRequest21sp1',
                               {'userId': user_id}))
-        logger.info(sca)
+        log.info(sca)
         return sca
 
     def user_sca_modify(self, user_id, allow_call_retrieve=True,
@@ -421,7 +425,7 @@ class OciClient:
     def user_sca_endpoint_add(self, user_id, access_device, line_port,
                               is_active=True, allow_origination=True,
                               allow_termination=True):
-        logger.info("Add SCA. User: %s, Access Device: %s, Line Port: %s"
+        log.info("Add SCA. User: %s, Access Device: %s, Line Port: %s"
                     % (user_id, access_device, line_port))
         return self._send(
                 self._oci_xml('UserSharedCallAppearance'
@@ -462,7 +466,7 @@ class OciClient:
                                'parent': 'accessDeviceEndpoint'}))
 
     def user_sca_endpoint_delete(self, user_id, access_device, line_port):
-        logger.info("Delete SCA. User: %s, Access Device: %s, Line Port: %s"
+        log.info("Delete SCA. User: %s, Access Device: %s, Line Port: %s"
                     % (user_id, access_device, line_port))
         return self._send(
                 self._oci_xml('UserSharedCallAppearance'
@@ -497,8 +501,8 @@ class OciClient:
             for i in range(len(values)):
                 device[keys[i]] = values[i]
             ret.append(device)
-        logger.info("User '%s' SCA Devices:" % user_id)
-        logger.info(ret)
+        log.info("User '%s' SCA Devices:" % user_id)
+        log.info(ret)
         return ret
 
     def user_delete_all_sca_devices(self, user_id, **kwargs):
@@ -515,7 +519,7 @@ class OciClient:
                                             **kwargs)
 
     def user_primary_endpoint_add(self, user_id, access_device, line_port):
-        logger.info("Add Primary Endpoint. User: %s, Access Device: %s, "
+        log.info("Add Primary Endpoint. User: %s, Access Device: %s, "
                     "Line Port: %s" % (user_id, access_device, line_port))
         return self._send(
                 self._oci_xml('UserModifyRequest17sp4',
@@ -537,14 +541,14 @@ class OciClient:
                                'parent': 'endpoint/accessDeviceEndpoint'}))
 
     def user_primary_endpoint_delete(self, user_id):
-        logger.info("Delete user '%s' primary endpoint" % user_id)
+        log.info("Delete user '%s' primary endpoint" % user_id)
         return self._send(
                 self._oci_xml('UserModifyRequest17sp4',
                               {'userId': user_id},
                               {'endpoint': ""}))
 
     def user_delete_all_devices(self, user_id, **kwargs):
-        logger.info("Deleting all devices of '%s'" % user_id)
+        log.info("Deleting all devices of '%s'" % user_id)
         primary_device = self.user_get_primary_device(user_id)
         if primary_device is not None:
             self.user_primary_endpoint_delete(user_id)
@@ -613,7 +617,7 @@ class OciClient:
         default_domain = response.findtext('.//groupDefaultDomain')
         domains = [d.text for d in response.findall('.//domain')]
         domains.insert(0, default_domain)
-        logger.info("Available domains: '%s'" % domains)
+        log.info("Available domains: '%s'" % domains)
         return domains
 
     def create_ucone_test_user(self, first_name, last_name, password,

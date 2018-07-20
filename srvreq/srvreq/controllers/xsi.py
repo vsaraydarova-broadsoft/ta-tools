@@ -9,25 +9,25 @@ import srvreq.model.request as requests
 import server.tools as tools
 import server.utils as utils
 
-__all__ = ['OCIPController']
+__all__ = ['XSIController']
 
 log = logging.getLogger(__name__)
 
-class OCIPController(BaseController):
+class XSIController(BaseController):
     """Sample controller-wide authorization"""
 
     REQUESTS = {}
     REQUEST_NAMES = []
 
     base_dict = {
-        "title" : "OCIP Requests",
-        "page" : "ociprequest"
+        "title" : "XSP Requests",
+        "page" : "xsirequest"
     }
 
     def __init__(self, settings_controller):
         BaseController.__init__(self)
         self.sc = settings_controller
-        requests.add_ocip_requests(self.REQUESTS, self.REQUEST_NAMES)
+        requests.add_xsi_requests(self.REQUESTS, self.REQUEST_NAMES)
         self.base_dict["requests"] = self.REQUESTS
         self.base_dict["request_names"] = self.REQUEST_NAMES
 
@@ -46,11 +46,11 @@ class OCIPController(BaseController):
         return self.base_dict
 
     def _execute_reqest(self, method, **kw):
-        oci = tools.create_oci_tool(username=self.sc.get_admin_username(),
-                                    password=self.sc.get_admin_password(),
-                                    server=self.sc.get_server())
+        xsi = tools.create_xsi_tool_for_account(
+            self.sc.get_server(),
+            self.sc.get_user_data())
         try:
-            func = getattr(oci, method)
+            func = getattr(xsi, method)
             args = []
             _kwargs = False
             for a in self.REQUESTS[method].arguments:
@@ -73,14 +73,13 @@ class OCIPController(BaseController):
         except AttributeError as ae:
             flash('Please set xsi user settings', 'error')
         except AssertionError as ae:
-            flash('OCI call failed: %s' % ae, 'error')
+            flash('XSI call failed: %s' % ae, 'error')
             self.base_dict["output"] = "%s" % ae
             return self.base_dict
-        self.base_dict["output"] = "OCI Command: \n%s\n" \
-                                   "OCI Response:\n%s\n" % (oci.oci_command, utils.xml_string(res))
+        self.base_dict["output"] = "%s" % utils.xml_string(res)
         return self.base_dict
 
-    @expose('srvreq.templates.ociprequest')
+    @expose('srvreq.templates.xsirequest')
     def _default(self, pagename="", **kw):
         if pagename in self.REQUESTS.keys():
             return self._render_page(pagename, **kw)
@@ -90,6 +89,6 @@ class OCIPController(BaseController):
             flash('Unsupported method', 'error')
             redirect("/settings")
 
-    @expose('srvreq.templates.ociprequest')
+    @expose('srvreq.templates.xsirequest')
     def index(self):
         return self.base_dict

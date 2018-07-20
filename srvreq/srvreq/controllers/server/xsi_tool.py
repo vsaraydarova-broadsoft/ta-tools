@@ -9,7 +9,7 @@ import utils
 def _pc_dm_url(elem, **kwargs):
     for e in elem.findall(utils.ns_escape("accessDevice")):
         if e.find(utils.ns_escape("deviceType")).text == \
-                kwargs.get("deviceProfileType", "Business Communicator - PC"):
+                kwargs.get("deviceType", "Business Communicator - PC"):
             return [e.find(utils.ns_escape(x)).text for
                     x in ["deviceTypeUrl",
                           "deviceUserNamePassword/userName",

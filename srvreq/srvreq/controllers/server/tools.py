@@ -6,13 +6,57 @@ import copy
 import json
 import base64
 from ConfigParser import ConfigParser
-
-from robot.api import logger
 import xsi_tool
 import xmpp_tool
 import oci_tool
 import utils
 #from ..data import SERVER, ACCOUNTS
+
+def create_xsi_tool_for_account(server, account):
+    return xsi_tool.XsiTool(server,
+                            account["xsp_username"],
+                            account["xsp_password"])
+
+
+def create_xmpp_tool_for_account(account):
+    return xmpp_tool.XmppTool(account["xmpp_username"],
+                              account["xmpp_password"])
+
+
+def create_oci_tool(**kwargs):
+    assert all([x in kwargs for x in ("username", "password", "server")]), \
+        "Missing OCI setting"
+    return oci_tool.OciClient(
+        kwargs.get("username"),
+        kwargs.get("password"),
+        kwargs.get("url", kwargs.get("server")),
+        kwargs.get("override_location", True))
+
+
+def fetch_server_data_for_account(server, account, ucaas=False):
+    xsi = create_xsi_tool_for_account(server, account)
+    utils.update_dict(account, xsi.get_directory_data())
+    kwargs = {"ucaas": ucaas}
+    account["dm_config"] = xsi.get_dm_config(**kwargs)
+    if not ucaas:
+        for x in ["username", "password"]:
+            account["xmpp_" + x] = utils.node_value(account["dm_config"],
+                                                    "protocols/xmpp/"
+                                                    "credentials/%s" % x)
+        xmpp = create_xmpp_tool_for_account(account)
+        utils.update_dict(account, xmpp.get_xmpp_data())
+
+
+def fetch_server_data(server, accounts):
+    """
+    Fetch Xsi directory data, xmpp roster and localstore
+    contacts for given users' accounts
+    """
+    for account in accounts:
+        fetch_server_data_for_account(server, account)
+    print accounts
+
+#-----------------------------------------------------------------
 
 
 def _apply_dm_change(tree, key, value):
@@ -149,8 +193,8 @@ def deploy_dm_changes(user):
     utils.put_app_file(c,
                        "dm_config.xml",
                        utils.xml_string(a["dm_config"]))
-    logger.debug("Deploy DM Config for user %s. Config:\n%s" %
-                 (user, utils.xml_string(a["dm_config"])))
+    #logger.debug("Deploy DM Config for user %s. Config:\n%s" %
+    #             (user, utils.xml_string(a["dm_config"])))
 
     client = utils.client_for_user(user)
     app_dir = utils.get_remote_appdir(client)
@@ -207,7 +251,7 @@ def deploy_app_ini_changes(user):
         create_app_ini(c["aut"]["initial_app_ini"]))
 
 
-def fetch_server_data(*users):
+def _fetch_server_data(*users):
     """
     Fetch Xsi directory data, xmpp roster and localstore
     contacts for given users' accounts
@@ -216,26 +260,6 @@ def fetch_server_data(*users):
         utils.wildcard_users(users))
 
 
-def create_oci_tool(**kwargs):
-    username = kwargs.get("username")
-    password = kwargs.get("password")
-    assert username, "Missing OCI group admin username"
-    assert password, "Missing OCI group admin password"
-    return oci_tool.OciClient(
-        username,
-        password,
-        kwargs.get("url", SERVER["oci_root"]),
-        kwargs.get("override_location", True))
-
-
-def create_xsi_tool_for_account(account):
-    return xsi_tool.XsiTool(SERVER["oci_root"],
-                            account["xsp_username"],
-                            account["xsp_password"])
-
-
-def create_xsi_tool(user):
-    return create_xsi_tool_for_account(utils.account_for_user(user))
 
 
 def create_xmpp_tool_for_account(account):
@@ -257,7 +281,7 @@ def load_server_data_for_all_accounts(cache_filename):
         fetch_server_data_for_account(account)
     cache_account_server_data(cache_filename)
 
-
+'''
 def fetch_server_data_for_account(account):
     xsi = create_xsi_tool_for_account(account)
     utils.update_dict(account, xsi.get_directory_data())
@@ -273,7 +297,7 @@ def fetch_server_data_for_account(account):
                                                     "credentials/%s" % x)
         xmpp = create_xmpp_tool_for_account(account)
         utils.update_dict(account, xmpp.get_xmpp_data())
-
+'''
 
 def fetch_server_data_for_user(user):
     fetch_server_data_for_account(utils.account_for_user(user))

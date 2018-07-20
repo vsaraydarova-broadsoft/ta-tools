@@ -4,10 +4,12 @@ from lxml import etree as et
 
 
 def xml_string(tree):
-    return et.tostring(tree.getroot(),
-                       encoding="UTF-8",
-                       xml_declaration=True,
-                       pretty_print=True)
+    if isinstance(tree, et._ElementTree):
+        return et.tostring(tree.getroot(),
+                           encoding="UTF-8",
+                           xml_declaration=True,
+                           pretty_print=True)
+    return tree
 
 
 def xml_tree(s):
