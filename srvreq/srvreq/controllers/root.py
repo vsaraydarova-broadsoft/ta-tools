@@ -17,27 +17,17 @@ from srvreq.lib.base import BaseController
 
 from srvreq.controllers.error import ErrorController
 from srvreq.controllers.ocip import OCIPController
-from srvreq.controllers.xsp import XSPController
+from srvreq.controllers.xsi import XSIController
+from srvreq.controllers.setting import SettingsController
+from srvreq.controllers.trace import TraceController
 
 from srvreq.model.setting import Setting
+import srvreq.controllers.server.utils as utils
 
 
 __all__ = ['RootController']
 
 log = logging.getLogger(__name__)
-
-
-class SettingsController(BaseController):
-    @expose()
-    def index(self):
-        redirect('/')
-
-    @expose()
-    def save(self, **kwargs):
-        log.info("<DB> Save settings %s" % kwargs)
-        for k, v in kwargs.iteritems():
-            DBSession.query(Setting).filter_by(name=k).one().value = v
-        redirect("/settings")
 
 
 class RootController(BaseController):
@@ -58,29 +48,39 @@ class RootController(BaseController):
     admin = AdminController(model, DBSession, config_type=TGAdminConfig)
 
     error = ErrorController()
+    trace = TraceController()
 
     _settings = SettingsController()
-    ocip = OCIPController()
-    xsp = XSPController()
+    ocip = OCIPController(_settings)
+    xsi = XSIController(_settings)
 
     def _before(self, *args, **kw):
         tmpl_context.project_name = "srvreq"
 
-    @expose('srvreq.templates.settings')
-    def _default(self, pagename="Settings"):
-        """Handle the front-page."""
+    def _settings_form(self, **kw):
         settings = {s.__dict__["name"]: s.__dict__["value"] \
                     for s in DBSession.query(Setting).all()}
+        _dict = dict(data=settings,
+                    xsp_username=self._settings.get_user_prop("xsp_username"),
+                    xsp_password=self._settings.get_user_prop("xsp_password"))
+        utils.update_dict(_dict, kw)
+        return _dict
 
-        return dict(data=settings)
+    def get_property_value(self, name):
+        return self._settings.get_active_user_prop(name)
+
+    def set_property_value(self, name, value):
+        return self._settings.set_active_user_prop(name, value)
 
     @expose('srvreq.templates.settings')
-    def settings(self):
-        """Handle the front-page."""
-        settings = {s.__dict__["name"]: s.__dict__["value"] \
-                    for s in DBSession.query(Setting).all()}
+    def _default(self, pagename="Settings", **kw):
+        return self._settings_form(**kw)
 
-        return dict(page='settings', data=settings)
+    @expose('srvreq.templates.settings')
+    def settings(self, **kw):
+        dict = self._settings_form(**kw)
+        dict["page"] = 'settings'
+        return dict
 
     @expose('srvreq.templates.index')
     def index(self):
