@@ -22,3 +22,17 @@ While developing you may want the server to reload after changes in package file
     $ gearbox serve --reload --debug
 
 Then you are ready to go.
+
+
+git clone ssh://git@github.com/vsaraydarova-broadsoft/ta-tools
+cd ta-tools
+mkdir tg2env
+virtualenv tg2env
+-- pip install TurboGears2
+-- pip install tg.devtools
+cd srvreq/
+-- pip install -e .
+gearbox setup-app
+gearbox serve
+
+
