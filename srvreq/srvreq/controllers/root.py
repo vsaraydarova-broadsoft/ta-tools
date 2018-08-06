@@ -82,10 +82,10 @@ class RootController(BaseController):
         dict["page"] = 'settings'
         return dict
 
-    @expose('srvreq.templates.index')
-    def index(self):
+    @expose('srvreq.templates.settings')
+    def index(self, pagename="Settings", **kw):
         """Handle the front-page."""
-        return dict(page='index')
+        return self._settings_form(**kw)
     @expose('srvreq.templates.about')
     def about(self):
         """Handle the 'about' page."""
