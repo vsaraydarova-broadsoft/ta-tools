@@ -85,20 +85,19 @@ class User(DeclarativeBase):
 
     user_id = Column(Integer, autoincrement=True, primary_key=True)
     user_name = Column(Unicode(16), unique=True, nullable=False)
-    email_address = Column(Unicode(255), unique=True, nullable=False)
-    display_name = Column(Unicode(255))
-    _password = Column('password', Unicode(128))
+    _password = Column('password', Unicode(128), nullable=False)
+    server = Column(Unicode(16), nullable=False)
     created = Column(DateTime, default=datetime.now)
 
     def __repr__(self):
-        return '<User: name=%s, email=%s, display=%s>' % (
+        return '<User: name=%s, password=%s, server=%s>' % (
             repr(self.user_name),
-            repr(self.email_address),
-            repr(self.display_name)
+            repr(self._password),
+            repr(self.server)
         )
 
     def __unicode__(self):
-        return self.display_name or self.user_name
+        return self.user_name
 
     @property
     def permissions(self):
@@ -109,15 +108,16 @@ class User(DeclarativeBase):
         return perms
 
     @classmethod
-    def by_email_address(cls, email):
-        """Return the user object whose email address is ``email``."""
-        return DBSession.query(cls).filter_by(email_address=email).first()
+    def by_server(cls, server):
+        """Return the user object whose server address is ``server``."""
+        return DBSession.query(cls).filter_by(server=server).first()
 
     @classmethod
     def by_user_name(cls, username):
         """Return the user object whose user name is ``username``."""
         return DBSession.query(cls).filter_by(user_name=username).first()
 
+    '''
     @classmethod
     def _hash_password(cls, password):
         salt = sha256()
@@ -136,10 +136,12 @@ class User(DeclarativeBase):
         password = password.decode('utf-8')
 
         return password
+    '''
 
     def _set_password(self, password):
         """Hash ``password`` on the fly and store its hashed version."""
-        self._password = self._hash_password(password)
+        ## self._password = self._hash_password(password)
+        self._password = password
 
     def _get_password(self):
         """Return the hashed version of the password."""
@@ -160,9 +162,10 @@ class User(DeclarativeBase):
         :rtype: bool
 
         """
-        hash = sha256()
-        hash.update((password + self.password[:64]).encode('utf-8'))
-        return self.password[64:] == hash.hexdigest()
+        ## hash = sha256()
+        ## hash.update((password + self.password[:64]).encode('utf-8'))
+        ## return self.password[64:] == hash.hexdigest()
+        return self._password == password
 
 
 class Permission(DeclarativeBase):

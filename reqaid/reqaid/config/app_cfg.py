@@ -10,6 +10,8 @@ from tg.configuration import AppConfig
 import reqaid
 from reqaid import model, lib
 
+import transaction
+
 base_config = AppConfig()
 base_config.renderers = []
 
@@ -47,7 +49,7 @@ base_config.DBSession = reqaid.model.DBSession
 # Configure the authentication backend
 base_config.auth_backend = 'sqlalchemy'
 # YOU MUST CHANGE THIS VALUE IN PRODUCTION TO SECURE YOUR APP
-base_config.sa_auth.cookie_secret = "db4f47ee-ce10-4ea1-8e8c-9a1929eba440"
+base_config.sa_auth.cookie_secret = "9950b3f1-54a0-47e0-a378-aa63f973ce9f"
 # what is the class you want to use to search for users in the database
 base_config.sa_auth.user_class = model.User
 
@@ -59,16 +61,40 @@ class ApplicationAuthMetadata(TGAuthMetadata):
     def __init__(self, sa_auth):
         self.sa_auth = sa_auth
 
+    def _add_manager(self, user, password, server):
+        u = model.User(user_name=user, password=password, server=server)
+        self.sa_auth.dbsession.add(u)
+        g = self.sa_auth.dbsession.query(model.Group).filter_by(group_name='managers').one()
+        g.users.append(u)
+        self.sa_auth.dbsession.flush()
+        transaction.commit()
+
+    def _update_manager(self, user, password, server):
+        self.sa_auth.dbsession.query(model.User).filter_by(
+            user_name=user).one().password = password
+        self.sa_auth.dbsession.query(model.User).filter_by(
+            user_name=user).one().server = server
+        self.sa_auth.dbsession.flush()
+        transaction.commit()
+
     def authenticate(self, environ, identity):
         login = identity['login']
+        password = identity['password']
+        server = environ['webob._parsed_post_vars'][0]['server']
+
         user = self.sa_auth.dbsession.query(self.sa_auth.user_class).filter_by(
             user_name=login
         ).first()
 
         if not user:
-            login = None
-        elif not user.validate_password(identity['password']):
-            login = None
+            self._add_manager(login, password, server)
+        ## elif not user.validate_password(identity['password']):
+        else:
+            self._update_manager(login, password, server)
+
+        user = self.sa_auth.dbsession.query(self.sa_auth.user_class).filter_by(
+            user_name=login
+        ).first()
 
         if login is None:
             try:
@@ -90,7 +116,6 @@ class ApplicationAuthMetadata(TGAuthMetadata):
             environ['repoze.who.application'] = HTTPFound(
                 location=environ['SCRIPT_NAME'] + '?'.join(('/login', urlencode(params, True)))
             )
-
         return login
 
     def get_user(self, identity, userid):
@@ -110,7 +135,7 @@ base_config.sa_auth.authmetadata = ApplicationAuthMetadata(base_config.sa_auth)
 
 # In case ApplicationAuthMetadata didn't find the user discard the whole identity.
 # This might happen if logged-in users are deleted.
-base_config['identity.allow_missing_user'] = False
+base_config['identity.allow_missing_user'] = True
 
 # You can use a different repoze.who Authenticator if you want to
 # change the way users can login

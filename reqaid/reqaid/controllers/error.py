@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Error controller"""
-from tg import request, expose
+from tg import request, expose, tmpl_context
 from reqaid.lib.base import BaseController
 
 __all__ = ['ErrorController']
@@ -17,6 +17,9 @@ class ErrorController(BaseController):
     ErrorDocuments middleware in your config/middleware.py file.
 
     """
+
+    def _before(self, *args, **kw):
+        tmpl_context.project_name = ""
 
     @expose('reqaid.templates.error')
     def document(self, *args, **kwargs):

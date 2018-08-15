@@ -1,0 +1,57 @@
+<html py:extends="master.xhtml" py:strip="True">
+    <head py:block="head" py:strip="True">
+        <title py:block="master_title">Login</title>
+    </head>
+
+<body py:block="body" py:strip="True">
+  <py:with vars="title = {'set_admin': 'Group Admin', 'set_device_type': 'Device Type'}.get(action)">
+     <h3 py:content="title">OCIP Settings</h3><br/><br/>
+  </py:with>
+
+  <div class="row">
+    <div class="col-md-8 col-md-offset-1">
+      <py:if test="action == 'set_admin'">
+        <form action="/ocip/${action}" method="post" accept-charset="UTF-8" class="form-horizontal">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">Username:</label>
+            <div class="col-sm-10">
+              <input class="form-control" type="text" name="admin_username" value="${admin_username}"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">Password:</label>
+            <div class="col-sm-10">
+              <input class="form-control" type="text" name="admin_password" value="${admin_password}"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-10 col-sm-offset-2">
+              <button type="submit" class="btn btn-default">Set</button>
+            </div>
+          </div>
+        </form>
+      </py:if>
+      <py:if test="action == 'set_device_type'">
+        <form action="/ocip/${action}" method="post" accept-charset="UTF-8" class="form-horizontal">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">Device Type:</label>
+            <div class="col-sm-10">
+              <!-- <input class="form-control" type="text" name="device_type"/> -->
+              <select class="form-control" name="device_types">
+                <py:for each="dt in device_types">
+                  <option value="${dt}" py:content="dt">device type here</option>
+                </py:for>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-10 col-sm-offset-2">
+              <button type="submit" class="btn btn-default">Set</button>
+            </div>
+          </div>
+        </form>
+      </py:if>
+    </div>
+  </div>
+</body>
+</html>
