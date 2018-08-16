@@ -48,6 +48,7 @@ def add_ocip_requests(requests, request_names):
                           "user_get_primary_device",
                           "user_get_network_conferencing_request",
                           "user_get_assigned_services",
+                          "user_get_sca_list",
 
                           #"user_assign_service",
                           #"user_unassign_service",

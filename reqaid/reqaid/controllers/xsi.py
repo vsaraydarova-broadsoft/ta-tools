@@ -3,7 +3,8 @@
 import logging
 import base64
 from tg.i18n import lazy_ugettext as l_
-from tg import request, expose, redirect, flash, require, predicates
+from tg import request, expose, redirect, flash, require, \
+    predicates, tmpl_context
 from reqaid.lib.base import BaseController
 import reqaid.model.request as requests
 
@@ -16,7 +17,7 @@ log = logging.getLogger(__name__)
 
 class XSIController(BaseController):
     """Sample controller-wide authorization"""
-    allow_only = predicates.has_permission('manage', msg=l_('Please login with your XSI credentials'))
+    allow_only = predicates.has_permission('manage')
 
     REQUESTS = {}
     REQUEST_NAMES = []
@@ -34,6 +35,7 @@ class XSIController(BaseController):
         self.base_dict["request_names"] = self.REQUEST_NAMES
 
     def _before(self, *args, **kw):
+        tmpl_context.project_name = ""
         self.base_dict["user"] = request.identity['repoze.who.userid']
 
     def _render_page(self, pagename, **kw):

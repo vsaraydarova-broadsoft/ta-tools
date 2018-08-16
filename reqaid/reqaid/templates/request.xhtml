@@ -13,18 +13,20 @@
   </head>
 
   <body>
-    <!-- Navbar -->
+
     <nav class="navbar navbar-default">
+
       <div class="navbar-header">
+        <!-- Navbar
         <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-content">
           <span class="sr-only">Toggle navigation</span>
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
-        </button>
+        </button>-->
         <a class="navbar-brand" href="${tg.url('/')}">
-          <img src="${tg.url('/img/turbogears_logo.png')}" height="20" alt="TurboGears 2"/>
-          ${getattr(tmpl_context, 'project_name', 'reqaid')}
+          <img src="${tg.url('/img/turbogears_logo.png')}" height="20" alt="Cisco Ind."/>
+          ${getattr(tmpl_context, 'project_name', 'Cisco Inc.')}
         </a>
       </div>
 
@@ -38,20 +40,19 @@
           <li py:if="not request.identity and self.defined('page') and page!='login'"><a href="${tg.url('/login')}">Login</a></li>
           <li py:if="request.identity and self.defined('clear') and clear==True"><a href="${tg.url('/ocip/clear_settings')}">Clear</a></li>
           <li py:if="request.identity"><a href="${tg.url('/logout_handler')}">Logout</a></li>
-          <!-- <li py:if="request.identity"><a href="${tg.url('/admin')}">Admin</a></li> -->
         </ul>
       </div>
     </nav>
 
     <div class="container">
-      <!-- Flash messages -->
+      <!-- Flash messages
       <py:with vars="flash=tg.flash_obj.render('flash', use_js=False)">
         <div class="row">
           <div class="col-md-8 col-md-offset-2">
             <div py:if="flash" py:replace="Markup(flash)" />
           </div>
         </div>
-      </py:with>
+      </py:with>-->
       <!-- Main included content -->
       <div class="row">
         <div class="col-md-4">

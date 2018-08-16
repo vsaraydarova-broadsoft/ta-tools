@@ -4,7 +4,8 @@ import logging
 import base64
 from tg.i18n import lazy_ugettext as l_
 from tg import predicates
-from tg import expose, redirect, flash, require, request
+from tg import expose, redirect, flash, require, \
+    request, tmpl_context
 from reqaid.lib.base import BaseController
 import reqaid.model.request as requests
 
@@ -17,7 +18,7 @@ log = logging.getLogger(__name__)
 
 class OCIPController(BaseController):
     """Sample controller-wide authorization"""
-    allow_only = predicates.has_permission('manage', msg=l_('Please login with your XSI credentials'))
+    allow_only = predicates.has_permission('manage')
 
     REQUESTS = {}
     REQUEST_NAMES = []
@@ -35,8 +36,8 @@ class OCIPController(BaseController):
         self.base_dict["request_names"] = self.REQUEST_NAMES
 
     def _before(self, *args, **kw):
+        tmpl_context.project_name = ""
         self.base_dict["clear"] = self._has_settings("admin_username", "admin_password", "deviceType")
-        print "***** clear ", self.base_dict["clear"]
         self.base_dict["user"] = request.identity['repoze.who.userid']
 
     def _render_page(self, pagename, **kw):
@@ -136,12 +137,8 @@ class OCIPController(BaseController):
 
     def _has_settings(self, *args):
         for p in args:
-            v = self.ds.get_user_prop(p)
-            print "********* %s:%s" % (p,v)
-            if v == '':
-                print "***** return False"
+            if self.ds.get_user_prop(p) == '':
                 return False
-        print "***** return True"
         return True
 
     @expose('reqaid.templates.ociprequest')
