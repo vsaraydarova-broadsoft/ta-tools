@@ -54,6 +54,8 @@
 
     <!-- Main included content -->
     <py:block name="body"></py:block>
+    <!-- Logging -->
+    <textarea py:if="self.defined('output')" class="form-control" name="logging" py:content="output" rows="25"/>
   </div>
 
   <!-- Footer

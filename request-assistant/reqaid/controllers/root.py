@@ -82,7 +82,14 @@ class RootController(BaseController):
             redirect('/login',
                      params=dict(came_from=came_from, __logins=login_counter))
         userid = request.identity['repoze.who.userid']
-        self.data.fetch_user_data()
+        try:
+            self.data.fetch_user_data()
+        except AssertionError as ae:
+            log.error("Failed to fetch server data: %s" % ae)
+            redirect('/logout_handler')
+        except Exception as e:
+            log.error("Failed to fetch server data: %s" % e)
+            redirect('/logout_handler', params=dict(output="Failed to fetch server data: %s" % e))
 
         # Do not use tg.redirect with tg.url as it will add the mountpoint
         # of the application twice.
