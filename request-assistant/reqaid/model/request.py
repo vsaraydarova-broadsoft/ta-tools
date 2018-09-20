@@ -217,7 +217,7 @@ def add_xsi_requests(requests, request_names):
         'profile/device',
         'Get config file',
         Argument("deviceType", pos=-1),
-        Argument("fileFormat", value="config.xml", pos=-1, descr="config.xml | tablet-config.xml | mobile-config.xml"),
+        Argument("fileFormat", pos=-1, descr="config.xml | tablet-config.xml | mobile-config.xml"),
     )
     requests['set_dnd'] = XSIRequest(
         'set_dnd',
