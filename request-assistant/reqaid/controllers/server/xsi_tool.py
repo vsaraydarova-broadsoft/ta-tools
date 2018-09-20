@@ -117,9 +117,10 @@ class XsiTool:
     def _dm_get(self, url, username, password, **kwargs):
         ucaas = kwargs.get('ucaas', False)
         file_extension = ".xml" if not ucaas else "-uc1s.xml"
+        file_name = kwargs.get("fileFormat", "config.xml").split('.')[0]
         return self._xsi_http(requests.get,
                               api_endpoint=None,
-                              location=url + "config" + file_extension,
+                              location=url + file_name + file_extension,
                               auth=HTTPDigestAuth(username, password))
 
     def get_dm_config(self, **kwargs):
